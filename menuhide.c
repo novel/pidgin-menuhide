@@ -70,7 +70,14 @@ event_filter(gpointer event_data)
 		if (strcmp(keyname, "i") == 0) {
 			//printf("userinfo\n");
 			gtk_menu_item_activate((GtkMenuItem*)gtkconv->win->menu.get_info);
+		} else if (strcmp(keyname, "n") == 0) {
+			gtk_notebook_next_page((GtkNotebook*)gtkconv->win->notebook);
+		} else if (strcmp(keyname, "p") == 0) {
+			gtk_notebook_prev_page((GtkNotebook*)gtkconv->win->notebook);
+		} else {
+			return TRUE;
 		}
+
 		return FALSE;
 	}
 
