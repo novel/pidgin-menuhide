@@ -1,10 +1,10 @@
 menuhide.so:
-	gcc -shared -fPIC -o menuhide.so menuhide.c `pkg-config pidgin --libs --cflags`
+	gcc -shared -fPIC -g -o menuhide.so menuhide.c `pkg-config pidgin --libs --cflags`
 
 all: menuhide.so
 
 install: menuhide.so
-	cp menuhide.so ~/.purple/plugins
+	cp menuhide.so /home/novel/.purple/plugins
 
 clean:
 	rm -f menuhide.so

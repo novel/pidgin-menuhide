@@ -1,5 +1,10 @@
 #define PURPLE_PLUGINS
 
+#include <X11/Xlib.h>
+
+#include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
+#include <gdk/gdkx.h>
 #include <glib.h>
 #include <gtkutils.h>
 
@@ -10,6 +15,11 @@
 #include "version.h"
 
 static void menuhide_attach(PurpleConversation *conv);
+static void keygrabber_init(GtkWidget *widget);
+static gboolean event_filter(gpointer event_data);
+static char* keycode_to_str(int keycode);
+
+static PidginConversation *gtkconv;
 
 static gboolean
 plugin_load(PurplePlugin *plugin) {
@@ -21,6 +31,7 @@ plugin_load(PurplePlugin *plugin) {
 
     purple_signal_connect(conv_handle, "conversation-created",
 	plugin, PURPLE_CALLBACK(menuhide_attach), NULL);
+   
 
     return TRUE;
 }
@@ -28,11 +39,68 @@ plugin_load(PurplePlugin *plugin) {
 static void
 menuhide_attach(PurpleConversation *conv)
 {
-	PidginConversation *gtkconv;
-
 	gtkconv = PIDGIN_CONVERSATION(conv);
 	
 	gtk_widget_hide(gtkconv->win->menu.menubar);
+	keygrabber_init(gtkconv->win->window);
+}
+
+static GdkFilterReturn
+gdk_filter(GdkXEvent *xevent,
+	GdkEvent *event,
+	gpointer data)
+{
+	gboolean result = event_filter(xevent);
+	if (result == TRUE)
+		return GDK_FILTER_CONTINUE;
+	else
+		return GDK_FILTER_REMOVE;
+}
+
+static gboolean
+event_filter(gpointer event_data)
+{
+	XKeyEvent *keyevent = (XKeyEvent*)event_data;
+
+	if (((XEvent*)keyevent)->type != KeyPress)
+		return TRUE;
+
+	if (keyevent->state & ControlMask) {
+		char *keyname = keycode_to_str(keyevent->keycode);
+		if (strcmp(keyname, "i") == 0) {
+			//printf("userinfo\n");
+			gtk_menu_item_activate((GtkMenuItem*)gtkconv->win->menu.get_info);
+		}
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static char*
+keycode_to_str(int keycode)
+{
+	KeyCode key = (KeyCode)keycode;
+	KeySym sym;
+	Display *display;
+	char *keyname = NULL;
+
+	display = GDK_DISPLAY();
+	sym = XKeycodeToKeysym(display, key, 0);
+	if (sym != NoSymbol)
+		keyname = XKeysymToString(sym);
+	
+	return keyname;
+}
+
+static void
+keygrabber_init(GtkWidget *widget)
+{
+	GdkWindow* root;
+
+	root = gtk_widget_get_toplevel(GTK_WIDGET(widget))->window;
+
+	gdk_window_add_filter(root, gdk_filter, NULL);
 }
 
 static PurplePluginInfo info = {
