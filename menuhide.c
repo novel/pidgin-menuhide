@@ -74,6 +74,10 @@ event_filter(gpointer event_data)
 			gtk_notebook_next_page((GtkNotebook*)gtkconv->win->notebook);
 		} else if (strcmp(keyname, "p") == 0) {
 			gtk_notebook_prev_page((GtkNotebook*)gtkconv->win->notebook);
+		} else if (strcmp(keyname, "w") == 0) {
+			gtk_notebook_remove_page(
+					(GtkNotebook*)gtkconv->win->notebook,
+				  	gtk_notebook_get_current_page((GtkNotebook*)gtkconv->win->notebook));
 		} else {
 			return TRUE;
 		}
