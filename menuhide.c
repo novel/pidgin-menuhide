@@ -33,6 +33,37 @@ static gboolean current_mode = TRUE;
 GtkWidget *modeline;
 static gboolean label_created = FALSE;
 
+// array to hold pressed keys
+GArray *keychain;
+
+// function to process keychain
+static void process_keychain();
+
+static void
+process_keychain()
+{
+	
+
+	if (keychain->len == 2) {
+		char *first, *second;
+
+		first = g_array_index(keychain, char*, 0);
+		second = g_array_index(keychain, char*, 1);
+		printf("keychain: %s-%s\n", first, second);
+		//		g_array_index(keychain, char*, 0),
+		//		g_array_index(keychain, char*, 1));
+		if (strcmp(first, "g") == 0) {
+			if (strcmp(second, "t") == 0) {
+				gtk_notebook_next_page((GtkNotebook*)gtkconv->win->notebook);
+			} else if (strcmp(second, "T") == 0) {
+				gtk_notebook_prev_page((GtkNotebook*)gtkconv->win->notebook);
+			}
+		}	
+
+		g_array_remove_range(keychain, 0, 2);
+	}
+}
+
 static void
 set_mode(gboolean mode)
 {
@@ -60,6 +91,8 @@ plugin_load(PurplePlugin *plugin) {
     purple_signal_connect(conv_handle, "conversation-created",
 	plugin, PURPLE_CALLBACK(menuhide_attach), NULL);
    
+    keychain = g_array_new(FALSE, FALSE, sizeof(char*));
+
     return TRUE;
 }
 
@@ -99,7 +132,7 @@ menuhide_attach(PurpleConversation *conv)
 	
 	gtk_widget_hide(gtkconv->win->menu.menubar);
 	keygrabber_init(gtkconv->win->window);
-	statusbar_create(gtkconv->win->notebook);
+	statusbar_create(gtkconv->win->window);
 	set_mode(TRUE);
 	//	gtk_widget_show(
 }
@@ -126,6 +159,9 @@ event_filter(gpointer event_data)
 
 	char *keyname = keycode_to_str(keyevent->keycode);
 
+	/*
+	 * This part handles switching between modes
+	 */
 	if (current_mode == TRUE) {
 		if (strcmp(keyname, "Escape") == 0) {
 			set_mode(FALSE);
@@ -137,8 +173,8 @@ event_filter(gpointer event_data)
 			return FALSE;
 		}
 	}
-//	if (strcmp(keyname, "Escape")
 
+	/* These keybindings are relevant in all modes */
 	if (keyevent->state & ControlMask) {
 //		char *keyname = keycode_to_str(keyevent->keycode);
 
@@ -162,6 +198,14 @@ event_filter(gpointer event_data)
 			return TRUE;
 		}
 
+		return FALSE;
+	}
+
+	// command line mode keybindings
+	if (current_mode == FALSE) {
+		g_array_append_val(keychain, keyname);
+		process_keychain();
+			
 		return FALSE;
 	}
 
