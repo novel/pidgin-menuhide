@@ -18,8 +18,36 @@ static void menuhide_attach(PurpleConversation *conv);
 static void keygrabber_init(GtkWidget *widget);
 static gboolean event_filter(gpointer event_data);
 static char* keycode_to_str(int keycode);
+static void statusbar_create(GtkWidget* widget);
+
+// function to change mode
+static void set_mode(gboolean mode);
 
 static PidginConversation *gtkconv;
+
+/* Current mode
+ * TRUE goes for 'INSERT'
+ * FALSE goes for 'COMMAND'
+ */
+static gboolean current_mode = TRUE;
+GtkWidget *modeline;
+static gboolean label_created = FALSE;
+
+static void
+set_mode(gboolean mode)
+{
+
+	printf("here\n");
+
+	current_mode = mode;
+
+	if (current_mode == TRUE) {
+		printf("-- INSERT --\n");
+		gtk_label_set_text(modeline, "-- INSERT --");
+	} else {
+		gtk_label_set_text(modeline, "-- COMMAND --");
+	}
+}	
 
 static gboolean
 plugin_load(PurplePlugin *plugin) {
@@ -32,8 +60,36 @@ plugin_load(PurplePlugin *plugin) {
     purple_signal_connect(conv_handle, "conversation-created",
 	plugin, PURPLE_CALLBACK(menuhide_attach), NULL);
    
-
     return TRUE;
+}
+
+static void
+statusbar_create(GtkWidget* widget)
+{
+	GList *children;
+	GList *child;
+
+	if (label_created == TRUE)
+		return;
+
+	children = gtk_container_get_children (GTK_CONTAINER (widget));
+
+	for (child = children; child; child = child->next) {
+		GtkWidget *cur;
+
+		cur = (GtkWidget *)child->data;		
+		printf("%s\n", gtk_widget_get_name(cur));
+		
+	        modeline = gtk_label_new("");
+		gtk_box_pack_end (GTK_BOX (cur), modeline, FALSE, TRUE, 0);
+		gtk_misc_set_alignment(modeline, 0, 0);
+
+		gtk_widget_show (modeline);
+
+		set_mode(TRUE);
+	}
+
+	label_created = TRUE;
 }
 
 static void
@@ -43,6 +99,9 @@ menuhide_attach(PurpleConversation *conv)
 	
 	gtk_widget_hide(gtkconv->win->menu.menubar);
 	keygrabber_init(gtkconv->win->window);
+	statusbar_create(gtkconv->win->notebook);
+	set_mode(TRUE);
+	//	gtk_widget_show(
 }
 
 static GdkFilterReturn
@@ -65,8 +124,26 @@ event_filter(gpointer event_data)
 	if (((XEvent*)keyevent)->type != KeyPress)
 		return TRUE;
 
+	char *keyname = keycode_to_str(keyevent->keycode);
+
+	if (current_mode == TRUE) {
+		if (strcmp(keyname, "Escape") == 0) {
+			set_mode(FALSE);
+			return FALSE;
+		}
+	} else {
+		if (strcmp(keyname, "i") == 0) {
+			set_mode(TRUE);		
+			return FALSE;
+		}
+	}
+//	if (strcmp(keyname, "Escape")
+
 	if (keyevent->state & ControlMask) {
-		char *keyname = keycode_to_str(keyevent->keycode);
+//		char *keyname = keycode_to_str(keyevent->keycode);
+
+		printf("KEYNAME = %s\n", keyname);
+
 		if (strcmp(keyname, "i") == 0) {
 			//printf("userinfo\n");
 			gtk_menu_item_activate((GtkMenuItem*)gtkconv->win->menu.get_info);
@@ -75,10 +152,13 @@ event_filter(gpointer event_data)
 		} else if (strcmp(keyname, "p") == 0) {
 			gtk_notebook_prev_page((GtkNotebook*)gtkconv->win->notebook);
 		} else if (strcmp(keyname, "w") == 0) {
-			gtk_notebook_remove_page(
-					(GtkNotebook*)gtkconv->win->notebook,
-				  	gtk_notebook_get_current_page((GtkNotebook*)gtkconv->win->notebook));
+			//gtk_notebook_remove_page(
+			//		(GtkNotebook*)gtkconv->win->notebook,
+			//	  	gtk_notebook_get_current_page((GtkNotebook*)gtkconv->win->notebook));
+//			gtk_widget_activate(gtkconv->close);
+			purple_conversation_destroy(gtkconv->active_conv);
 		} else {
+			printf("KEYNAME = %s\n", keyname);
 			return TRUE;
 		}
 
