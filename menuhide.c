@@ -9,6 +9,7 @@
 #include <gtkutils.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include "notify.h"
 #include "plugin.h"
@@ -58,7 +59,7 @@ process_keychain()
 			} else if (strcmp(second, "T") == 0) {
 				gtk_notebook_prev_page((GtkNotebook*)gtkconv->win->notebook);
 			}
-		}	
+		}
 
 		g_array_remove_range(keychain, 0, 2);
 	}
@@ -113,7 +114,7 @@ statusbar_create(GtkWidget* widget)
 		cur = (GtkWidget *)child->data;		
 		printf("%s\n", gtk_widget_get_name(cur));
 		
-	        modeline = gtk_label_new("");
+	        modeline = gtk_label_new("XXX");
 		gtk_box_pack_end (GTK_BOX (cur), modeline, FALSE, TRUE, 0);
 		gtk_misc_set_alignment(modeline, 0, 0);
 
@@ -178,7 +179,7 @@ event_filter(gpointer event_data)
 	if (keyevent->state & ControlMask) {
 //		char *keyname = keycode_to_str(keyevent->keycode);
 
-		printf("KEYNAME = %s\n", keyname);
+//		printf("KEYNAME = %s\n", keyname);
 
 		if (strcmp(keyname, "i") == 0) {
 			//printf("userinfo\n");
@@ -197,7 +198,7 @@ event_filter(gpointer event_data)
 			g_list_foreach(list, (GFunc)purple_conversation_destroy, NULL);
 			g_list_free(list);
 		} else {
-			printf("KEYNAME = %s\n", keyname);
+			//printf("KEYNAME = %s\n", keyname);
 			return TRUE;
 		}
 
@@ -206,6 +207,27 @@ event_filter(gpointer event_data)
 
 	// command line mode keybindings
 	if (current_mode == FALSE) {
+		char ch;
+
+		/* first check what we got. We're interested only in [a-zA-Z0-9], so ignore
+		 * other stuff */
+		if (strlen(keyname) > 1)
+			/* strings longer than 1 char here means it's something like 'Shift' etc */
+			return FALSE;
+
+		ch = keyname[0];
+		
+		if (isalnum(ch) == 0)
+			/* meaning it's not alphanumeric */
+			return FALSE;
+
+		if (keyevent->state & ShiftMask) {
+			//keyname[0] = toupper(ch);
+//			free(keyname);
+			keyname = (char*)g_strdup_printf("%c", toupper(ch));
+			printf("With shift: %s [%c]\n", keyname, toupper(ch));
+		}
+
 		g_array_append_val(keychain, keyname);
 		process_keychain();
 			
