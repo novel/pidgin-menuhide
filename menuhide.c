@@ -43,7 +43,17 @@ static void process_keychain();
 static void
 process_keychain()
 {
-	
+	printf("process_keychain(length = %d)\n", keychain->len);
+
+	if (keychain->len == 1) {
+		char *first = g_array_index(keychain, char*, 0);
+
+		/* if shortcut is not supported at the beginning, clear the list */
+		if (strcmp(first, "g") != 0) {
+			g_array_remove_range(keychain, 0, 1);
+			return;
+		}
+	}	
 
 	if (keychain->len == 2) {
 		char *first, *second;
@@ -58,6 +68,10 @@ process_keychain()
 				gtk_notebook_next_page((GtkNotebook*)gtkconv->win->notebook);
 			} else if (strcmp(second, "T") == 0) {
 				gtk_notebook_prev_page((GtkNotebook*)gtkconv->win->notebook);
+			} else if (strcmp(second, "$") == 0) {
+				printf("> go to the last tab\n");
+			} else if (strcmp(second, "^") == 0) {
+				printf("> go to the first tab\n");
 			}
 		}
 
@@ -222,10 +236,14 @@ event_filter(gpointer event_data)
 			return FALSE;
 
 		if (keyevent->state & ShiftMask) {
-			//keyname[0] = toupper(ch);
-//			free(keyname);
-			keyname = (char*)g_strdup_printf("%c", toupper(ch));
-			printf("With shift: %s [%c]\n", keyname, toupper(ch));
+			if (isalpha(ch) != 0) {			
+				keyname = (char*)g_strdup_printf("%c", toupper(ch));
+				printf("With shift: %s [%c]\n", keyname, toupper(ch));
+			} else if (ch == '4') {
+				keyname = strdup("$");
+			} else if (ch == '6') {
+				keyname = strdup("^");
+			}
 		}
 
 		g_array_append_val(keychain, keyname);
