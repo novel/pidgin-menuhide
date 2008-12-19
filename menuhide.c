@@ -188,11 +188,14 @@ event_filter(gpointer event_data)
 		} else if (strcmp(keyname, "p") == 0) {
 			gtk_notebook_prev_page((GtkNotebook*)gtkconv->win->notebook);
 		} else if (strcmp(keyname, "w") == 0) {
-			//gtk_notebook_remove_page(
-			//		(GtkNotebook*)gtkconv->win->notebook,
-			//	  	gtk_notebook_get_current_page((GtkNotebook*)gtkconv->win->notebook));
+//			gtk_notebook_remove_page(
+//					(GtkNotebook*)gtkconv->win->notebook,
+//				  	gtk_notebook_get_current_page((GtkNotebook*)gtkconv->win->notebook));
 //			gtk_widget_activate(gtkconv->close);
-			purple_conversation_destroy(gtkconv->active_conv);
+			//purple_conversation_destroy(gtkconv->active_conv);
+			GList *list = g_list_copy(gtkconv->convs);
+			g_list_foreach(list, (GFunc)purple_conversation_destroy, NULL);
+			g_list_free(list);
 		} else {
 			printf("KEYNAME = %s\n", keyname);
 			return TRUE;
