@@ -15,6 +15,8 @@
 #include "plugin.h"
 #include "version.h"
 
+#include "dgin314.h"
+
 static void menuhide_attach(PurpleConversation *conv);
 static void keygrabber_init(GtkWidget *widget);
 static gboolean event_filter(gpointer event_data);
@@ -65,7 +67,8 @@ process_keychain()
 		//		g_array_index(keychain, char*, 1));
 		if (strcmp(first, "g") == 0) {
 			if (strcmp(second, "t") == 0) {
-				gtk_notebook_next_page((GtkNotebook*)gtkconv->win->notebook);
+				//gtk_notebook_next_page((GtkNotebook*)gtkconv->win->notebook);
+				pigdin_go_to_next_tab(gtkconv);
 			} else if (strcmp(second, "T") == 0) {
 				gtk_notebook_prev_page((GtkNotebook*)gtkconv->win->notebook);
 			} else if (strcmp(second, "$") == 0) {

@@ -1,5 +1,6 @@
 # vim:ft=python
 
+from os.path import expanduser
 import Utils
 from Configure import conf
 
@@ -24,7 +25,8 @@ def configure(conf):
     conf.check_cfg(package='pidgin', uselib_store='PIDGIN', args='--cflags --libs')
 
 def build(bld):
-    obj = bld.new_task_gen('cc', 'sharedlib')
-    obj.source = 'menuhide.c'
+    obj = bld.new_task_gen('cc', 'cshlib')
+    obj.source = 'menuhide.c dgin314.c'
     obj.target = 'menuhide'
     obj.uselib = 'PIDGIN'
+    obj.install_path = expanduser('~/.purple/plugins')
