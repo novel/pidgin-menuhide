@@ -67,16 +67,12 @@ process_keychain()
 		//		g_array_index(keychain, char*, 1));
 		if (strcmp(first, "g") == 0) {
 			if (strcmp(second, "t") == 0) {
-				//gtk_notebook_next_page((GtkNotebook*)gtkconv->win->notebook);
 				pidgin_go_to_next_tab(gtkconv);
 			} else if (strcmp(second, "T") == 0) {
-				//gtk_notebook_prev_page((GtkNotebook*)gtkconv->win->notebook);
 				pidgin_go_to_prev_tab(gtkconv);
 			} else if (strcmp(second, "$") == 0) {
-				//printf("> go to the last tab\n");
 				pidgin_go_to_last_tab(gtkconv);
 			} else if (strcmp(second, "^") == 0) {
-				//printf("> go to the first tab\n");
 				pidgin_go_to_first_tab(gtkconv);
 			}
 		}
