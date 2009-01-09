@@ -18,8 +18,8 @@
 #include "dgin314.h"
 
 static void menuhide_attach(PurpleConversation *conv);
-static void keygrabber_init(GtkWidget *widget, PurpleConversation *gtkconv);
-static gboolean event_filter(gpointer event_data, PurpleConversation *gtkconv);
+static void keygrabber_init(GtkWidget *widget, PidginWindow *win);
+static gboolean event_filter(gpointer event_data, PidginWindow *win);
 static char* keycode_to_str(int keycode);
 static void statusbar_create(GtkWidget* widget);
 
@@ -146,9 +146,10 @@ static void
 menuhide_attach(PurpleConversation *conv)
 {
 	PidginConversation *gtkconv = PIDGIN_CONVERSATION(conv);
-	
+	PidginWindow *win = pidgin_conv_get_window(gtkconv);
+
 	gtk_widget_hide(gtkconv->win->menu.menubar);
-	keygrabber_init(gtkconv->win->window, conv);
+	keygrabber_init(gtkconv->win->window, win);
 	statusbar_create(gtkconv->win->window);
 	set_mode(TRUE);
 	//	gtk_widget_show(
@@ -159,8 +160,8 @@ gdk_filter(GdkXEvent *xevent,
 	GdkEvent *event,
 	gpointer data)
 {
-	PurpleConversation *conv = (PurpleConversation*)data;
-	gboolean result = event_filter(xevent, conv);
+	PidginWindow *win = (PidginWindow*)data;
+	gboolean result = event_filter(xevent, win);
 	if (result == TRUE)
 		return GDK_FILTER_CONTINUE;
 	else
@@ -168,11 +169,11 @@ gdk_filter(GdkXEvent *xevent,
 }
 
 static gboolean
-event_filter(gpointer event_data, PurpleConversation *conv)
+event_filter(gpointer event_data, PidginWindow *win)
 {	
 	PidginConversation *gtkconv;
        
-	gtkconv	= PIDGIN_CONVERSATION(conv);
+	gtkconv	= pidgin_conv_window_get_active_gtkconv(win);
 
 	XKeyEvent *keyevent = (XKeyEvent*)event_data;
 
@@ -280,14 +281,14 @@ keycode_to_str(int keycode)
 }
 
 static void
-keygrabber_init(GtkWidget *widget, PurpleConversation *conv)
+keygrabber_init(GtkWidget *widget, PidginWindow *win)
 {
 	GdkWindow* root;
 
 	root = gtk_widget_get_toplevel(GTK_WIDGET(widget))->window;
 	
 	if (g_object_get_data(GTK_OBJECT(root), "filter_set") == NULL) {
-		gdk_window_add_filter(root, gdk_filter, (gpointer)conv);
+		gdk_window_add_filter(root, gdk_filter, (gpointer)win);
 		g_object_set_data(GTK_OBJECT(root), "filter_set", "1");
 	}
 }
