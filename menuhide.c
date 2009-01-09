@@ -51,10 +51,16 @@ process_keychain(PidginConversation *gtkconv)
 		char *first = g_array_index(keychain, char*, 0);
 
 		/* if shortcut is not supported at the beginning, clear the list */
-		if (strcmp(first, "g") != 0) {
+		if ((strcmp(first, "g") != 0) && (strcmp(first, "d") != 0)) {
 			g_array_remove_range(keychain, 0, 1);
 			return;
 		}
+
+		/* XXX go upper, remove the unneeded && above */
+		if (strcmp(first, "d") == 0) {
+			pidgin_close_tab(gtkconv);
+			g_array_remove_range(keychain, 0, 1);
+		}		
 	}	
 
 	if (keychain->len == 2) {
