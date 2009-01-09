@@ -21,6 +21,8 @@ def configure(conf):
     if not conf.env['CC']:
         conf.fatal('gcc not found')
 
+    conf.env.append_value('CFLAGS', '-g')
+
     conf.check_cfg(atleast_pkgconfig_version='0.0.0')
     conf.check_cfg(package='pidgin', uselib_store='PIDGIN', args='--cflags --libs')
 

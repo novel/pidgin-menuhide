@@ -285,8 +285,11 @@ keygrabber_init(GtkWidget *widget, PurpleConversation *conv)
 	GdkWindow* root;
 
 	root = gtk_widget_get_toplevel(GTK_WIDGET(widget))->window;
-
-	gdk_window_add_filter(root, gdk_filter, (gpointer)conv);
+	
+	if (g_object_get_data(GTK_OBJECT(root), "filter_set") == NULL) {
+		gdk_window_add_filter(root, gdk_filter, (gpointer)conv);
+		g_object_set_data(GTK_OBJECT(root), "filter_set", "1");
+	}
 }
 
 static PurplePluginInfo info = {
