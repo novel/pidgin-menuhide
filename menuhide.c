@@ -18,15 +18,15 @@
 #include "dgin314.h"
 
 static void menuhide_attach(PurpleConversation *conv);
-static void keygrabber_init(GtkWidget *widget);
-static gboolean event_filter(gpointer event_data);
+static void keygrabber_init(GtkWidget *widget, PurpleConversation *gtkconv);
+static gboolean event_filter(gpointer event_data, PurpleConversation *gtkconv);
 static char* keycode_to_str(int keycode);
 static void statusbar_create(GtkWidget* widget);
 
 // function to change mode
 static void set_mode(gboolean mode);
 
-static PidginConversation *gtkconv;
+//static PidginConversation *gtkconv;
 
 /* Current mode
  * TRUE goes for 'INSERT'
@@ -40,10 +40,10 @@ static gboolean label_created = FALSE;
 GArray *keychain;
 
 // function to process keychain
-static void process_keychain();
+static void process_keychain(PidginConversation *gtkconv);
 
 static void
-process_keychain()
+process_keychain(PidginConversation *gtkconv)
 {
 	printf("process_keychain(length = %d)\n", keychain->len);
 
@@ -145,10 +145,10 @@ statusbar_create(GtkWidget* widget)
 static void
 menuhide_attach(PurpleConversation *conv)
 {
-	gtkconv = PIDGIN_CONVERSATION(conv);
+	PidginConversation *gtkconv = PIDGIN_CONVERSATION(conv);
 	
 	gtk_widget_hide(gtkconv->win->menu.menubar);
-	keygrabber_init(gtkconv->win->window);
+	keygrabber_init(gtkconv->win->window, conv);
 	statusbar_create(gtkconv->win->window);
 	set_mode(TRUE);
 	//	gtk_widget_show(
@@ -159,7 +159,8 @@ gdk_filter(GdkXEvent *xevent,
 	GdkEvent *event,
 	gpointer data)
 {
-	gboolean result = event_filter(xevent);
+	PurpleConversation *conv = (PurpleConversation*)data;
+	gboolean result = event_filter(xevent, conv);
 	if (result == TRUE)
 		return GDK_FILTER_CONTINUE;
 	else
@@ -167,8 +168,12 @@ gdk_filter(GdkXEvent *xevent,
 }
 
 static gboolean
-event_filter(gpointer event_data)
-{
+event_filter(gpointer event_data, PurpleConversation *conv)
+{	
+	PidginConversation *gtkconv;
+       
+	gtkconv	= PIDGIN_CONVERSATION(conv);
+
 	XKeyEvent *keyevent = (XKeyEvent*)event_data;
 
 	if (((XEvent*)keyevent)->type != KeyPress)
@@ -250,7 +255,7 @@ event_filter(gpointer event_data)
 		}
 
 		g_array_append_val(keychain, keyname);
-		process_keychain();
+		process_keychain(gtkconv);
 			
 		return FALSE;
 	}
@@ -275,13 +280,13 @@ keycode_to_str(int keycode)
 }
 
 static void
-keygrabber_init(GtkWidget *widget)
+keygrabber_init(GtkWidget *widget, PurpleConversation *conv)
 {
 	GdkWindow* root;
 
 	root = gtk_widget_get_toplevel(GTK_WIDGET(widget))->window;
 
-	gdk_window_add_filter(root, gdk_filter, NULL);
+	gdk_window_add_filter(root, gdk_filter, (gpointer)conv);
 }
 
 static PurplePluginInfo info = {
