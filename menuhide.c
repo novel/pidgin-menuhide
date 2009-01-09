@@ -210,9 +210,10 @@ event_filter(gpointer event_data)
 //				  	gtk_notebook_get_current_page((GtkNotebook*)gtkconv->win->notebook));
 //			gtk_widget_activate(gtkconv->close);
 			//purple_conversation_destroy(gtkconv->active_conv);
-			GList *list = g_list_copy(gtkconv->convs);
-			g_list_foreach(list, (GFunc)purple_conversation_destroy, NULL);
-			g_list_free(list);
+//			GList *list = g_list_copy(gtkconv->convs);
+//			g_list_foreach(list, (GFunc)purple_conversation_destroy, NULL);
+//			g_list_free(list);
+			pidgin_close_tab(gtkconv);
 		} else {
 			//printf("KEYNAME = %s\n", keyname);
 			return TRUE;
