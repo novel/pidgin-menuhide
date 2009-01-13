@@ -1,0 +1,33 @@
+1. Compilation and installation
+
+Build system is waf based (http://code.google.com/p/waf/).
+
+To build the plugin, use:
+
+  ./waf configure
+  ./waf build
+
+You might use ./waf install to copy the resulting .so file into
+your ~/.purple/plugins dir or copy it yourself whereever you want.
+
+2. Usage
+
+As soon as you enable the plugin in pidgin plugins dialog, it starts to
+hide menus for conversation windows. The following shortcuts will be working:
+
+ - ctrl-i -- shows info about current user you're talking with
+ - ctrl-n/ctrl-p -- go to next/prev tab, tab cycling is enabled, i.e.
+                    if you press ctrl-n at the last tab, you'll switch to
+                    the first one
+ - Esc -- switch to command mode
+
+In command mode the following commands are available:
+ - i -- go to insert (normal) mode
+ - gt/gT -- go to next/prev tab
+ - g^/g$ -- go to first/last tab
+ - d -- close current tab
+ - u -- undo close tab
+
+Feedback and ideas are welcome,
+
+-- Roman Bogorodskiy <novel@FreeBSD.org>
