@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
 
+#include <string.h>
+
 #include "dgin314.h"
 
 /*
@@ -47,3 +49,33 @@ void pidgin_close_tab(PidginConversation *gtkconv)
 {
 	purple_conversation_destroy(gtkconv->active_conv);
 }
+
+void pidgin_restore_tab(PidginConversation *gtkconv)
+{
+	if (g_queue_is_empty(closed_convs) == TRUE)
+		return;
+
+	struct ClosedTabInfo *closed_tab_info = (struct CloedTabInfo*)g_queue_pop_tail(closed_convs);
+	printf("to restore: %s\n", closed_tab_info->name);
+	//g_free(closed_tab_info);
+	purple_conversation_new(PURPLE_CONV_TYPE_IM, closed_tab_info->account, closed_tab_info->name);
+}
+
+void pidgin_conv_destroy_handler(PurpleConversation *conv) 
+{
+	_register_tab_close(conv);
+}
+
+/*
+ * helper functions
+ */
+
+void _register_tab_close(PurpleConversation *conv) {
+	printf("%s: closed: %s\n", __func__, conv->name);
+	struct ClosedTabInfo *closed_tab_info = (struct ClosedTabInfo*)malloc(sizeof(struct ClosedTabInfo*));
+	closed_tab_info->account = conv->account;
+	closed_tab_info->name = strdup(conv->name);
+
+	g_queue_push_head(closed_convs, closed_tab_info);
+}
+

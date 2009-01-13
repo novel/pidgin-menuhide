@@ -51,7 +51,8 @@ process_keychain(PidginConversation *gtkconv)
 		char *first = g_array_index(keychain, char*, 0);
 
 		/* if shortcut is not supported at the beginning, clear the list */
-		if ((strcmp(first, "g") != 0) && (strcmp(first, "d") != 0)) {
+		if ((strcmp(first, "g") != 0) && (strcmp(first, "d") != 0) && 
+				(strcmp(first, "u") != 0)) {
 			g_array_remove_range(keychain, 0, 1);
 			return;
 		}
@@ -60,7 +61,12 @@ process_keychain(PidginConversation *gtkconv)
 		if (strcmp(first, "d") == 0) {
 			pidgin_close_tab(gtkconv);
 			g_array_remove_range(keychain, 0, 1);
-		}		
+		}
+
+		if (strcmp(first, "u") == 0) {
+			pidgin_restore_tab(gtkconv);
+			g_array_remove_range(keychain, 0, 1);
+		}
 	}	
 
 	if (keychain->len == 2) {
@@ -106,17 +112,23 @@ set_mode(gboolean mode)
 static gboolean
 plugin_load(PurplePlugin *plugin) {
 	void *conv_handle = purple_conversations_get_handle();
-    GList *convs;
+	GList *convs;
 
-    for (convs = purple_get_conversations(); convs != NULL; convs = convs->next)
-	menuhide_attach((PurpleConversation *)convs->data);
+	for (convs = purple_get_conversations(); convs != NULL; convs = convs->next)
+		menuhide_attach((PurpleConversation *)convs->data);
 
-    purple_signal_connect(conv_handle, "conversation-created",
-	plugin, PURPLE_CALLBACK(menuhide_attach), NULL);
+	purple_signal_connect(conv_handle, "conversation-created",
+		plugin, PURPLE_CALLBACK(menuhide_attach), NULL);
+
+	purple_signal_connect(conv_handle, "deleting-conversation", 
+			plugin, PURPLE_CALLBACK(pidgin_conv_destroy_handler), NULL);
    
-    keychain = g_array_new(FALSE, FALSE, sizeof(char*));
+	keychain = g_array_new(FALSE, FALSE, sizeof(char*));
 
-    return TRUE;
+	/* init queue of closed tabs */
+	closed_convs = g_queue_new();
+
+	return TRUE;
 }
 
 static void
